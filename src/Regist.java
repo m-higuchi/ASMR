@@ -6,17 +6,17 @@ import java.util.Map;
 import net.arnx.jsonic.*;
 import subscriptions.*;
 
-public class Regist2{
+public class Regist{
     //定数の定義
-    public static final String MY_CHANNEL_ID = "UCZVw8W_P-o4TH0FTHEb68_w";
     public static final String MAX_RESULTS = "50";
-    public static final String KEY = "AIzaSyBFd4Gcf6LaQFD3UDvrUkRDH_TzpTPV6bo";
     public static final String DB_NAME = "asmrtist";
 
     public static void main(String arg[]) throws Exception {
+	Config conf = new Config();
+	conf.set();
 	String pageToken = "";
 	do{
-	    String urlString = "https://www.googleapis.com/youtube/v3/subscriptions?part=snippet&channelId=" + MY_CHANNEL_ID + "&maxResults=" + MAX_RESULTS + "&key=" + KEY + pageToken + "&fields=items(snippet(resourceId(channelId),title,description)),pageInfo,nextPageToken";
+	    String urlString = "https://www.googleapis.com/youtube/v3/subscriptions?part=snippet&channelId=" + conf.channelId + "&maxResults=" + MAX_RESULTS + "&key=" + conf.key + pageToken + "&fields=items(snippet(resourceId(channelId),title,description)),pageInfo,nextPageToken";
 
 	    //HTTPリクエスト
 	    URI uri = new URI(urlString);
@@ -52,8 +52,7 @@ public class Regist2{
 	    String user = null;
 	    String password = null;
 
-	    Config conf = new Config();
-	    conf.set();
+
 	    Class.forName(conf.driver);
 
 	    try{

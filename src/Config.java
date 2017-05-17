@@ -7,40 +7,59 @@ public class Config{
     public String user = null;
     public String password = null;
     public String url = null;
+    public String key = null;
+    public String channelId = null;
 
     public void set(){
 	try{
-	    DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-	    DocumentBuilder builder = factory.newDocumentBuilder();
 	    FileInputStream in = new FileInputStream("config.xml");
-	    Document root = builder.parse(in);
-	    Node connection = root.getFirstChild();
-	    NodeList params = connection.getChildNodes();
+	    Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(in);
+
+	    Node config = document.getFirstChild();
+	    NodeList params = config.getChildNodes();
 
 	    for(int i = 0; i < params.getLength(); i++){
 		Node node = params.item(i);
 		if(node.getNodeType() == Node.ELEMENT_NODE){
-		    String tag = node.getNodeName();
-		    if(tag.equals("driver")){
-			driver = node.getFirstChild().getNodeValue();
+		    NodeList childNodes = node.getChildNodes();
+		    for(int j = 0; j < childNodes.getLength(); j++){
+			Node childNode = childNodes.item(j);
+			if(childNode.getNodeType() == Node.ELEMENT_NODE){
+			    String tag = childNode.getNodeName();
+			    if(tag.equals("url")){
+				url = childNode.getFirstChild().getNodeValue();
+			    }else if(tag.equals("driver")){
+				driver = childNode.getFirstChild().getNodeValue();
+			    }else if(tag.equals("user")){
+				user = childNode.getFirstChild().getNodeValue();
+			    }else if(tag.equals("password")){
+				password = childNode.getFirstChild().getNodeValue();
+			    }else if(tag.equals("key")){
+				key = childNode.getFirstChild().getNodeValue();
+			    }else if(tag.equals("channel-id")){
+				channelId = childNode.getFirstChild().getNodeValue();
+			    }
+			}
 		    }
-		    if(tag.equals("user")){
-			user = node.getFirstChild().getNodeValue();
-		    }
-		    if(tag.equals("url")){
-			url = node.getFirstChild().getNodeValue();
-		    }
-		    if(tag.equals("password")){
-			password = node.getFirstChild().getNodeValue();
-		    }
+
 		}
 	    }
+
+
 	}catch(Exception e){
 	}
     }
 
 
     public void Config(){
+    }
+    public void print(){
+	System.out.println(url);
+	System.out.println(user);
+	System.out.println(driver);
+	System.out.println(password);
+	System.out.println(key);
+	System.out.println(channelId);
     }
 
 }
