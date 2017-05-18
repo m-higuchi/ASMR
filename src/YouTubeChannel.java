@@ -9,16 +9,24 @@ import java.util.Map;
 import net.arnx.jsonic.*;
 
 public class YouTubeChannel{
+
     public String channelTitle;
     public String channelId;
     public int activityLevel;
     public Boolean asmrOnly;
     public String description;
+    public String country;
 
     //コンストラクタ
     public YouTubeChannel(){
     }
     public YouTubeChannel(subscriptions.Item item){
+	//設定を読み込む
+	Config conf = new Config();
+	conf.set("config2.xml");
+	country = conf.country;
+	System.out.println(country);
+
 	channelTitle = item.snippet.title;
 	description = item.snippet.description;
 	channelId = item.snippet.resourceId.channelId;

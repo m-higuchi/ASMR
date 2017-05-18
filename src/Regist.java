@@ -13,7 +13,8 @@ public class Regist{
 
     public static void main(String arg[]) throws Exception {
 	Config conf = new Config();
-	conf.set();
+	conf.set("config2.xml");
+
 	String pageToken = "";
 	do{
 	    String urlString = "https://www.googleapis.com/youtube/v3/subscriptions?part=snippet&channelId=" + conf.channelId + "&maxResults=" + MAX_RESULTS + "&key=" + conf.key + pageToken + "&fields=items(snippet(resourceId(channelId),title,description)),pageInfo,nextPageToken";
@@ -47,7 +48,6 @@ public class Regist{
 	    }
 
 	    //JDBCを使用
-	    String driver = "aaa";
 	    String connectionURL = null;
 	    String user = null;
 	    String password = null;
@@ -67,7 +67,7 @@ public class Regist{
 		Statement stmt = sqlConnection.createStatement();
 		String command = "SELECT * FROM YOUTUBE_CHANNEL_MST WHERE CHANNEL_ID = ?  LIMIT 1";
 		PreparedStatement pstmt1 = sqlConnection.prepareStatement(command);
-		command = "INSERT INTO YOUTUBE_CHANNEL_MST(CHANNEL_ID, CHANNEL_TITLE, ACTIVITY_LEVEL, ASMR_ONLY, DESCRIPTION, ASMRTIST_ID, LAST_UPDATE) VALUES(?,?,?,?,?,?,now())";
+		command = "INSERT INTO YOUTUBE_CHANNEL_MST(CHANNEL_ID, CHANNEL_TITLE, ACTIVITY_LEVEL, ASMR_ONLY, DESCRIPTION, ASMRTIST_ID, LAST_UPDATE,LANG) VALUES(?,?,?,?,?,?,now(),?)";
 		PreparedStatement pstmt2 = sqlConnection.prepareStatement(command);
 		command = "UPDATE YOUTUBE_CHANNEL_MST SET CHANNEL_TITLE=?, DESCRIPTION=? WHERE CHANNEL_ID=?";
 		PreparedStatement pstmt3 = sqlConnection.prepareStatement(command);
@@ -104,6 +104,7 @@ public class Regist{
 				pstmt2.setBoolean(4,ytc.asmrOnly);
 				pstmt2.setString(5,ytc.description);
 				pstmt2.setInt(6,rset.getInt(1));
+				pstmt2.setString(7,ytc.country);
 				pstmt2.executeUpdate();
 			    }
 			    System.out.println("Inserted into the YouTubeChannel table.");

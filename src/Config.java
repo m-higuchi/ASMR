@@ -9,10 +9,12 @@ public class Config{
     public String url = null;
     public String key = null;
     public String channelId = null;
-
-    public void set(){
+    public String country = null;
+    public Config(){
+    }
+    public void set(String fname){
 	try{
-	    FileInputStream in = new FileInputStream("config.xml");
+	    FileInputStream in = new FileInputStream(fname);
 	    Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(in);
 
 	    Node config = document.getFirstChild();
@@ -38,6 +40,8 @@ public class Config{
 				key = childNode.getFirstChild().getNodeValue();
 			    }else if(tag.equals("channel-id")){
 				channelId = childNode.getFirstChild().getNodeValue();
+			    }else if(tag.equals("country")){
+				country = childNode.getFirstChild().getNodeValue();
 			    }
 			}
 		    }
@@ -51,8 +55,7 @@ public class Config{
     }
 
 
-    public void Config(){
-    }
+
     public void print(){
 	System.out.println(url);
 	System.out.println(user);
