@@ -16,16 +16,18 @@ public class YouTubeChannel{
     public Boolean asmrOnly;
     public String description;
     public String country;
+    public Config conf = new Config();
 
     //コンストラクタ
     public YouTubeChannel(){
+	//設定を読み込む
+	conf.set("config2.xml");
+	country = conf.country;
     }
     public YouTubeChannel(subscriptions.Item item){
 	//設定を読み込む
-	Config conf = new Config();
 	conf.set("config2.xml");
 	country = conf.country;
-	System.out.println(country);
 
 	channelTitle = item.snippet.title;
 	description = item.snippet.description;
@@ -36,10 +38,7 @@ public class YouTubeChannel{
 
     //date以降のVideoオブジェクトのArrayListを返す
     public ArrayList<YouTubeVideo> getVideoListAfter(java.util.Date date){
-	final String MY_CHANNEL_ID = "UCZVw8W_P-o4TH0FTHEb68_w";
 	final String MAX_RESULTS = "5";
-	final String KEY = "AIzaSyBFd4Gcf6LaQFD3UDvrUkRDH_TzpTPV6bo";
-	final String DB_NAME = "ASMRtist";
 
 	ArrayList<YouTubeVideo> videoList = new ArrayList<YouTubeVideo>();
 
@@ -48,7 +47,7 @@ public class YouTubeChannel{
 
 	//HTTPリクエスト
 	String pageToken = "";
-	String urlString = "https://www.googleapis.com/youtube/v3/search?part=snippet&id&channelId=" + this.channelId + "&maxResults=" + MAX_RESULTS + "&order=date&type=video&publishedAfter=" + dateString + pageToken + "&fields=items(id(channelId,videoId),snippet(channelId,description,publishedAt,title)),nextPageToken&key=" + KEY;
+	String urlString = "https://www.googleapis.com/youtube/v3/search?part=snippet&id&channelId=" + conf.channelId + "&maxResults=" + MAX_RESULTS + "&order=date&type=video&publishedAfter=" + dateString + pageToken + "&fields=items(id(channelId,videoId),snippet(channelId,description,publishedAt,title)),nextPageToken&key=" + conf.key;
 	try{
 	    URI uri = new URI(urlString);
 	    URLConnection httpConnection = uri.toURL().openConnection();
