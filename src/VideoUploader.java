@@ -10,6 +10,9 @@ public class VideoUploader{
     public static final String DB_NAME = "ASMRtist";
 
     public static void main(String arg[]) throws Exception{
+	Config conf = new Config();
+	conf.set("config2.xml");
+
 	ArrayList<YouTubeChannel> youtubeChannelList = new ArrayList<YouTubeChannel>();
 	try{
 	    int activityLevel = Integer.parseInt(arg[0]);
@@ -23,11 +26,11 @@ public class VideoUploader{
 	}
 
 	//JDBCを使用
-	Class.forName("com.mysql.jdbc.Driver");
+	Class.forName(conf.driver);
 
 	try{
 	    //DBに接続
-	    Connection sqlConnection = DriverManager.getConnection("jdbc:mysql://localhost/" + DB_NAME + "?characterEncoding=UTF-8&connectionCollation=utf8mb4_general_ci&user=root&password=sonnawakenai4");
+	    Connection sqlConnection = DriverManager.getConnection(conf.url, conf.user,conf.password);
 	    System.out.println("DBに接続");
 
 	    //オートコミットモードOFF
@@ -35,11 +38,11 @@ public class VideoUploader{
 	    System.out.println("オートコミットモードをOFF");
 	    
 	    //SQL文の準備
-	    String getChannelCommand = "SELECT CHANNEL_ID,CHANNEL_TITLE,ACTIVITY_LEVEL,ASMR_ONLY,DESCRIPTION,LAST_UPDATE FROM YOUTUBE_CHANNEL_MST WHERE ACTIVITY_LEVEL = ?";
+	    String getChannelCommand = "SELECT CHANNEL_ID,CHANNEL_TITLE,ACTIVITY_LEVEL,ASMR_ONLY,DESCRIPTION,LAST_UPDATE FROM YOUTUBE_CHANNEL_MST WHERE ACTIVITY_LEVEL = CAST(? AS int4)";
 	    String updateChannelCommand = "UPDATE YOUTUBE_CHANNEL_MST SET LAST_UPDATE = NOW() WHERE CHANNEL_ID = ?";
-	    String insertVideoCommand = "INSERT INTO YOUTUBE_VIDEO_MST (VIDEO_ID,TITLE,CHANNEL_ID,PUBLISHED_AT,DESCRIPTION,STATUS,TWEETED) VALUES(?,?,?,cast(? as datetime),?,'public','yet')";
+	    String insertVideoCommand = "INSERT INTO YOUTUBE_VIDEO_MST (VIDEO_ID,TITLE,CHANNEL_ID,PUBLISHED_AT,DESCRIPTION,STATUS,TWEET) VALUES(?,?,?,CAST(? AS timestamp),?,'public','yet')";
 	    String getLastUploadDateCommand = "select max(PUBLISHED_AT) from YOUTUBE_VIDEO_MST where CHANNEL_ID=?";
-	    String updateActivityLevelCommand = "UPDATE YOUTUBE_CHANNEL_MST SET ACTIVITY_LEVEL = ? WHERE CHANNEL_ID = ?";
+	    String updateActivityLevelCommand = "UPDATE YOUTUBE_CHANNEL_MST SET ACTIVITY_LEVEL = CAST(? AS int4) WHERE CHANNEL_ID = ?";
 	    PreparedStatement getChannelStatement = sqlConnection.prepareStatement(getChannelCommand);
 	    PreparedStatement updateChannelStatement = sqlConnection.prepareStatement(updateChannelCommand);
 	    PreparedStatement insertVideoStatement = sqlConnection.prepareStatement(insertVideoCommand);
@@ -88,8 +91,8 @@ public class VideoUploader{
 			    insertVideoStatement.executeUpdate();
 			}
 		    }else{
+			//System.out.println(calcActLv(youtubeChannel.activityLevel, rset2.getTimestamp(1),false));
 			updateActivityLevelStatement.setString(1,String.valueOf(calcActLv(youtubeChannel.activityLevel, rset2.getTimestamp(1),false)));
-			System.out.println(calcActLv(youtubeChannel.activityLevel, rset2.getTimestamp(1),false));
 		    }
 		    updateActivityLevelStatement.executeUpdate();
 		}
@@ -130,7 +133,9 @@ public class VideoUploader{
     public static int calcActLv(int activityLevel,java.util.Date lastUploadDate,Boolean update){
 	final long DAY_MILLISECONDS = 24 * 60 * 60 * 1000;
 	java.util.Date now = new java.util.Date();
-	if(update == true && activityLevel != 0){
+	if(lastUploadDate == null && activityLevel != 5){
+	    activityLevel++;
+	}else if(update == true && activityLevel != 0){
 	    activityLevel--;
 	    System.out.println("test1");
 	}else if(activityLevel == 0 && (now.getTime() - lastUploadDate.getTime() > DAY_MILLISECONDS)){
