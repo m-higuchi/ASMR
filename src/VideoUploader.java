@@ -7,11 +7,10 @@ import net.arnx.jsonic.*;
 import subscriptions.*;
 
 public class VideoUploader{
-    public static final String DB_NAME = "ASMRtist";
-
     public static void main(String arg[]) throws Exception{
+	System.out.println("設定ファイルの読み込み");
 	Config conf = new Config();
-	conf.set("config2.xml");
+	conf.set("/home/ec2-user/ASMR/bin/config.xml");
 
 	ArrayList<YouTubeChannel> youtubeChannelList = new ArrayList<YouTubeChannel>();
 	try{
@@ -24,7 +23,6 @@ public class VideoUploader{
 	    System.out.println("入力エラー");
 	    System.exit(-2);
 	}
-
 	//JDBCを使用
 	Class.forName(conf.driver);
 
@@ -135,24 +133,25 @@ public class VideoUploader{
 	java.util.Date now = new java.util.Date();
 	if(lastUploadDate == null && activityLevel != 5){
 	    activityLevel++;
+	    System.out.println("activity levelを"+ String.valueOf(activityLevel-1) + "から" + String.valueOf(activityLevel) + "に変更");
 	}else if(update == true && activityLevel != 0){
 	    activityLevel--;
-	    System.out.println("test1");
+	    System.out.println("activity levelを"+ String.valueOf(activityLevel+1) + "から" + String.valueOf(activityLevel) + "に変更");
 	}else if(activityLevel == 0 && (now.getTime() - lastUploadDate.getTime() > DAY_MILLISECONDS)){
 	    activityLevel++;
-	    System.out.println("test2");
+	    System.out.println("activity levelを"+ String.valueOf(activityLevel-1) + "から" + String.valueOf(activityLevel) + "に変更");
 	}else if(activityLevel == 1 && (now.getTime() - lastUploadDate.getTime() > DAY_MILLISECONDS * 7)){
 	    activityLevel++;
-	    System.out.println("test3");
+	    System.out.println("activity levelを"+ String.valueOf(activityLevel-1) + "から" + String.valueOf(activityLevel) + "に変更");
 	}else if(activityLevel == 2 && (now.getTime() - lastUploadDate.getTime() > DAY_MILLISECONDS * 30)){
 	    activityLevel++;
-	    System.out.println("test4");
+	    System.out.println("activity levelを"+ String.valueOf(activityLevel-1) + "から" + String.valueOf(activityLevel) + "に変更");
 	}else if(activityLevel == 3 && (now.getTime() - lastUploadDate.getTime() > DAY_MILLISECONDS * 180)){
 	    activityLevel++;
-	    System.out.println("test5");
+	    System.out.println("activity levelを"+ String.valueOf(activityLevel-1) + "から" + String.valueOf(activityLevel) + "に変更");
 	}else if(activityLevel == 4 && (now.getTime() - lastUploadDate.getTime() > DAY_MILLISECONDS * 365)){
 	    activityLevel++;
-	    System.out.println("test6");
+	    System.out.println("activity levelを"+ String.valueOf(activityLevel-1) + "から" + String.valueOf(activityLevel) + "に変更");
 	}
 	return activityLevel;
     }

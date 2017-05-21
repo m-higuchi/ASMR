@@ -46,8 +46,9 @@ public class YouTubeChannel{
 	String dateString = sdf.format(date);
 
 	//HTTPリクエスト
+	System.out.println(channelTitle + "の新着動画情報を取得...");
 	String pageToken = "";
-	String urlString = "https://www.googleapis.com/youtube/v3/search?part=snippet&id&channelId=" + conf.channelId + "&maxResults=" + MAX_RESULTS + "&order=date&type=video&publishedAfter=" + dateString + pageToken + "&fields=items(id(channelId,videoId),snippet(channelId,description,publishedAt,title)),nextPageToken&key=" + conf.key;
+	String urlString = "https://www.googleapis.com/youtube/v3/search?part=snippet&id&channelId=" + channelId + "&maxResults=" + MAX_RESULTS + "&order=date&type=video&publishedAfter=" + dateString + pageToken + "&fields=items(id(channelId,videoId),snippet(channelId,description,publishedAt,title)),nextPageToken&key=" + conf.key;
 	try{
 	    URI uri = new URI(urlString);
 	    URLConnection httpConnection = uri.toURL().openConnection();

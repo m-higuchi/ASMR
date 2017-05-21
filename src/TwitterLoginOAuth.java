@@ -9,9 +9,14 @@ import java.io.*;
 import java.sql.*;
 
 public class TwitterLoginOAuth{
+    public static Config conf = new Config();
     public static void main(String[] args){
-	final String m_ConsumerKey = "E6jgC2PHHPxqIuGLiDSOqj1Sm";
-	final String m_ConsumerSecret = "pCSTnBxUFluSgFABL8vdsddPg0ljoOhdOkZVvB90meCEwNliKC";
+	System.out.println("設定をロード...");
+	conf.set("/home/ec2-user/ASMR/bin/" + args[0]);
+	System.out.println("Twitter: " + conf.twitterId);
+	System.out.println("YouTube: " + conf.country);
+	final String m_ConsumerKey = conf.consumerKey;
+	final String m_ConsumerSecret = conf.consumerSecret;
 	Twitter twitter;
 
 	//アクセストークンの読み込み
@@ -34,11 +39,11 @@ public class TwitterLoginOAuth{
                 //自分のディレクトリに Access Token を保存しておく
                 storeAccessToken(accessToken);
             }
-            
             //自分のステータスの更新（＝ツイートの投稿）
             //Status status = twitter.updateStatus(args[0]);
             //System.out.println("Successfully updated the status to [" + status.getText() + "].");
 	    for(String message : getMessages()){
+		System.out.println(message);
 		Status status = twitter.updateStatus(message);
 	    }
 
@@ -52,27 +57,26 @@ public class TwitterLoginOAuth{
     public static ArrayList<String> getMessages()throws SQLException,ClassNotFoundException{
 	ArrayList<String> messageArray = new ArrayList<String>();
 	//JDBCを使用
-	Class.forName("com.mysql.jdbc.Driver");
-	//接続文字列
-	String strConnection = "jdbc:mysql://localhost/ASMRtist?characterEncoding=UTF-8&connectionCollation=utf8mb4_general_ci&user=root&password=sonnawakenai4";
-	Connection sqlConnection = null;
+	Class.forName(conf.driver);
+	//接続
+	Connection sqlConnection = DriverManager.getConnection(conf.url, conf.user,conf.password);
 	try{
-	    //接続
-	    sqlConnection = DriverManager.getConnection(strConnection);
-	    String sqlCommand = "SELECT YOUTUBE_CHANNEL_MST.CHANNEL_TITLE,YOUTUBE_VIDEO_MST.VIDEO_ID,YOUTUBE_VIDEO_MST.TITLE FROM YOUTUBE_VIDEO_MST INNER JOIN YOUTUBE_CHANNEL_MST ON YOUTUBE_CHANNEL_MST.CHANNEL_ID=YOUTUBE_VIDEO_MST.CHANNEL_ID WHERE YOUTUBE_VIDEO_MST.TWEETED='yet'";
-	    String sqlCommand2 = "UPDATE YOUTUBE_VIDEO_MST SET TWEETED='tweeted' WHERE VIDEO_ID=?";
+	    String sqlCommand = "SELECT * FROM YOUTUBE_VIDEO_MST_FOR_TWEET";
+	    String sqlCommand2 = "UPDATE YOUTUBE_VIDEO_MST SET TWEET='tweeted' WHERE VIDEO_ID=?";
 	    Statement stmt = sqlConnection.createStatement();
 	    PreparedStatement pstmt = sqlConnection.prepareStatement(sqlCommand2);
 	    ResultSet rset = stmt.executeQuery(sqlCommand);
 	    while(rset.next()){
-		String channelTitle = rset.getString(1);
-		String videoId = rset.getString(2);
-		String title = rset.getString(3);
-		String message = "◆" +channelTitle + "◆"+ "\n" + title + "\n" + "http://youtu.be/" + videoId;
-		messageArray.add(message);
-
-		pstmt.setString(1,videoId);
-		pstmt.executeUpdate();
+		if(rset.getString(2).equals(conf.country)){
+		    String channelTitle = rset.getString(1);
+		    String videoId = rset.getString(3);
+		    String title = rset.getString(4);
+		    String message = "◆" +channelTitle + "◆"+ "\n" + title + "\n" + "http://youtu.be/" + videoId;
+		    messageArray.add(message);
+		    
+		    pstmt.setString(1,videoId);
+		    pstmt.executeUpdate();
+		}
 	    }
 	}catch(Exception e){
 	    System.out.println(e);
@@ -182,7 +186,7 @@ public class TwitterLoginOAuth{
     static File createAccessTokenFileName() {
         // (メモ) System.getProperty("user.home") の返し値は
         // ホームディレクトリの絶対パス
-        String s = System.getProperty("user.home") + "/.twitter/client/sample/accessToken.dat";
+        String s = System.getProperty("user.home") + "/.twitter/client/ASMR/AccessToken_" + conf.twitterId + ".dat";
         return new File(s);
     }
 }

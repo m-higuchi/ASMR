@@ -10,6 +10,9 @@ public class Config{
     public String key = null;
     public String channelId = null;
     public String country = null;
+    public String consumerKey = null;
+    public String consumerSecret = null;
+    public String twitterId = null;
     public Config(){
     }
     public void set(String fname){
@@ -19,7 +22,6 @@ public class Config{
 
 	    Node config = document.getFirstChild();
 	    NodeList params = config.getChildNodes();
-
 	    for(int i = 0; i < params.getLength(); i++){
 		Node node = params.item(i);
 		if(node.getNodeType() == Node.ELEMENT_NODE){
@@ -42,6 +44,12 @@ public class Config{
 				channelId = childNode.getFirstChild().getNodeValue();
 			    }else if(tag.equals("country")){
 				country = childNode.getFirstChild().getNodeValue();
+			    }else if(tag.equals("consumer-key")){
+				consumerKey = childNode.getFirstChild().getNodeValue();
+			    }else if(tag.equals("consumer-secret")){
+				consumerSecret = childNode.getFirstChild().getNodeValue();
+			    }else if(tag.equals("id")){
+				twitterId = childNode.getFirstChild().getNodeValue();
 			    }
 			}
 		    }
@@ -51,6 +59,7 @@ public class Config{
 
 
 	}catch(Exception e){
+	    System.out.println(e);
 	}
     }
 
