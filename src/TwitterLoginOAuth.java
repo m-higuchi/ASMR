@@ -68,6 +68,8 @@ public class TwitterLoginOAuth{
 	    ResultSet rset = stmt.executeQuery(sqlCommand);
 	    while(rset.next()){
 		if(rset.getString(2).equals(conf.country)){
+		    System.out.println("asmr_only="+rset.getString(5));
+		    System.out.println("ツイートの取得...");
 		    String channelTitle = rset.getString(1);
 		    String videoId = rset.getString(3);
 		    String title = rset.getString(4);
@@ -86,6 +88,12 @@ public class TwitterLoginOAuth{
 	return messageArray;
     }
 
+    //文字列が特定の文字列を含む/含まないを判定
+    public int checkString(String str){
+	int ret = 0;
+	String matches[] = {"ASMR", "音フェチ", "おとふぇち", "おとフェチ"};
+	String exception[] = {"Non-ASMR", "Non ASMR", "No-ASMR", "No ASMR"};
+    }
     //アクセストークンの取得
     static AccessToken getOAuthAccessToken(Twitter twitter){
         RequestToken requestToken = null;

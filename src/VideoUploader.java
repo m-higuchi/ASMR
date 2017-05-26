@@ -49,12 +49,9 @@ public class VideoUploader{
 	    getChannelStatement.setString(1,arg[0]);
 	    ResultSet rset = null;
 	    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-
-
 	    try{
 		//ActivityLevelがarg[0]のチャンネル情報を取得
 		rset = getChannelStatement.executeQuery();
-
 		while(rset.next()){
 		    //チャンネル情報をYouTubeChannelインスタンスに格納
 		    YouTubeChannel youtubeChannel = new YouTubeChannel();
@@ -78,6 +75,7 @@ public class VideoUploader{
 		    updateActivityLevelStatement.setString(2,youtubeChannel.channelId);
 
 		    if(videoList.size() != 0){
+			System.out.println("新着動画あり");
 			updateActivityLevelStatement.setString(1,String.valueOf(calcActLv(youtubeChannel.activityLevel, rset2.getTimestamp(1),true)));
 			for(YouTubeVideo video : videoList){
 			    //System.out.println("videoId="+video.videoId + ", channelId=" + video.channelId);
@@ -90,6 +88,7 @@ public class VideoUploader{
 			}
 		    }else{
 			//System.out.println(calcActLv(youtubeChannel.activityLevel, rset2.getTimestamp(1),false));
+			System.out.println("新着動画なし");
 			updateActivityLevelStatement.setString(1,String.valueOf(calcActLv(youtubeChannel.activityLevel, rset2.getTimestamp(1),false)));
 		    }
 		    updateActivityLevelStatement.executeUpdate();

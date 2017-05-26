@@ -13,7 +13,7 @@ public class Regist{
 
     public static void main(String arg[]) throws Exception {
 	Config conf = new Config();
-	conf.set("config2.xml");
+	conf.set("/home/ec2-user/ASMR/bin/" + arg[0]);
 
 	String pageToken = "";
 	do{
@@ -87,7 +87,6 @@ public class Regist{
 				pstmt3.setString(2,ytc.description);
 				pstmt3.setString(3,ytc.channelId);
 				pstmt3.executeUpdate();
-				System.out.println(rset.getString(6));
 			    }
 			}else{ //レコードが存在しなければ追加
 			    command = "INSERT INTO ASMRTIST_MST(name) VALUES (null)";

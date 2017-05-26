@@ -21,14 +21,24 @@ public class YouTubeChannel{
     //コンストラクタ
     public YouTubeChannel(){
 	//設定を読み込む
-	conf.set("config2.xml");
-	country = conf.country;
+	conf.set("/home/ec2-user/ASMR/bin/config2.xml");
     }
+    /*
     public YouTubeChannel(subscriptions.Item item){
 	//設定を読み込む
-	conf.set("config2.xml");
-	country = conf.country;
+	//conf.set("config2.xml");
+	//country = conf.country;
 
+	channelTitle = item.snippet.title;
+	description = item.snippet.description;
+	channelId = item.snippet.resourceId.channelId;
+	activityLevel = 3; //初期値
+	asmrOnly = true;
+	}*/
+    public YouTubeChannel(subscriptions.Item item,Config config){
+	//設定を読み込む
+	conf = config;
+	country = conf.country;
 	channelTitle = item.snippet.title;
 	description = item.snippet.description;
 	channelId = item.snippet.resourceId.channelId;
@@ -53,7 +63,6 @@ public class YouTubeChannel{
 	    URI uri = new URI(urlString);
 	    URLConnection httpConnection = uri.toURL().openConnection();
 	    BufferedReader reader = new BufferedReader(new InputStreamReader(httpConnection.getInputStream(),"UTF-8"));
-
 	    String buffer = "";
 	    String strJson = "";
 	    while(buffer != null){
@@ -65,7 +74,6 @@ public class YouTubeChannel{
 	    pageToken = "&pageToken=" + search.nextPageToken;
 
 	    sdf.applyPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-
 	    for(int i = 0; i < search.items.length; i++){
 		YouTubeVideo video = new YouTubeVideo();
 		video.videoId = search.items[i].id.videoId;
