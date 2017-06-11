@@ -21,7 +21,7 @@ public class YouTubeChannel{
     //コンストラクタ
     public YouTubeChannel(){
 	//設定を読み込む
-	conf.set("/home/ec2-user/ASMR/bin/config2.xml");
+	conf.set("/home/ec2-user/ASMR/bin/config_JP.xml");
     }
     /*
     public YouTubeChannel(subscriptions.Item item){
@@ -48,6 +48,8 @@ public class YouTubeChannel{
 
     //date以降のVideoオブジェクトのArrayListを返す
     public ArrayList<YouTubeVideo> getVideoListAfter(java.util.Date date){
+	Config confForKey = new Config();
+	confForKey.set("/home/ec2-user/ASMR/bin/config_" + country + ".xml");
 	final String MAX_RESULTS = "5";
 
 	ArrayList<YouTubeVideo> videoList = new ArrayList<YouTubeVideo>();
@@ -58,8 +60,9 @@ public class YouTubeChannel{
 	//HTTPリクエスト
 	System.out.println(channelTitle + "の新着動画情報を取得...");
 	String pageToken = "";
-	String urlString = "https://www.googleapis.com/youtube/v3/search?part=snippet&id&channelId=" + channelId + "&maxResults=" + MAX_RESULTS + "&order=date&type=video&publishedAfter=" + dateString + pageToken + "&fields=items(id(channelId,videoId),snippet(channelId,description,publishedAt,title)),nextPageToken&key=" + conf.key;
+	String urlString = "https://www.googleapis.com/youtube/v3/search?part=snippet&id&channelId=" + channelId + "&maxResults=" + MAX_RESULTS + "&order=date&type=video&publishedAfter=" + dateString + pageToken + "&fields=items(id(channelId,videoId),snippet(channelId,description,publishedAt,title)),nextPageToken&key=" + confForKey.key;
 	try{
+	    System.out.println("config_" + confForKey.country + ".xmlを使用してHTTPリクエスト : " + urlString);
 	    URI uri = new URI(urlString);
 	    URLConnection httpConnection = uri.toURL().openConnection();
 	    BufferedReader reader = new BufferedReader(new InputStreamReader(httpConnection.getInputStream(),"UTF-8"));
@@ -127,6 +130,7 @@ public class YouTubeChannel{
 	    */
 	}catch(Exception e){
 	    System.out.println(e);
+	    return null;
 	}
 	return  videoList;
     }

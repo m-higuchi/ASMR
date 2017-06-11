@@ -75,18 +75,20 @@ public class Regist{
 		try{
 		    for(int i = 0; i < subscriptions.items.length; i++){
 			//YouTubeChannelインスタンスを生成
-			YouTubeChannel ytc = new YouTubeChannel(subscriptions.items[i]);
+			YouTubeChannel ytc = new YouTubeChannel(subscriptions.items[i],conf);
 
 			pstmt1.setString(1,ytc.channelId);
 			rset = pstmt1.executeQuery();
 			if(rset.next()){
-			    System.out.println("The YouTube channel  already exists in the YouTube Channel table.");
+			    System.out.println(ytc.channelTitle + " already exists in the YouTube Channel table.");
 			    //Channel TitleまたはDescriptionに変更があればDBを修正
 			    if(!ytc.channelTitle.equals(rset.getString(2)) || !ytc.description.equals(rset.getString(6))){
+				System.out.println("チャンネルタイトルまたは概要に変更あり");
 				pstmt3.setString(1,ytc.channelTitle);
 				pstmt3.setString(2,ytc.description);
 				pstmt3.setString(3,ytc.channelId);
 				pstmt3.executeUpdate();
+				System.out.println("DBを更新");
 			    }
 			}else{ //レコードが存在しなければ追加
 			    command = "INSERT INTO ASMRTIST_MST(name) VALUES (null)";

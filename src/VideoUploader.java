@@ -10,7 +10,7 @@ public class VideoUploader{
     public static void main(String arg[]) throws Exception{
 	System.out.println("設定ファイルの読み込み");
 	Config conf = new Config();
-	conf.set("/home/ec2-user/ASMR/bin/config.xml");
+	conf.set("/home/ec2-user/ASMR/bin/config_JP.xml");
 
 	ArrayList<YouTubeChannel> youtubeChannelList = new ArrayList<YouTubeChannel>();
 	try{
@@ -36,16 +36,18 @@ public class VideoUploader{
 	    System.out.println("オートコミットモードをOFF");
 	    
 	    //SQL文の準備
-	    String getChannelCommand = "SELECT CHANNEL_ID,CHANNEL_TITLE,ACTIVITY_LEVEL,ASMR_ONLY,DESCRIPTION,LAST_UPDATE FROM YOUTUBE_CHANNEL_MST WHERE ACTIVITY_LEVEL = CAST(? AS int4)";
-	    String updateChannelCommand = "UPDATE YOUTUBE_CHANNEL_MST SET LAST_UPDATE = NOW() WHERE CHANNEL_ID = ?";
+	    String getChannelCommand = "SELECT CHANNEL_ID,CHANNEL_TITLE,ACTIVITY_LEVEL,ASMR_ONLY,DESCRIPTION,LAST_UPDATE,LANG FROM YOUTUBE_CHANNEL_MST WHERE ACTIVITY_LEVEL = CAST(? AS int4)";
+	    String updateChannelCommand = "UPDATE YOUTUBE_CHANNEL_MST SET LAST_UPDATE = CAST(? AS timestamp) WHERE CHANNEL_ID = ?";
 	    String insertVideoCommand = "INSERT INTO YOUTUBE_VIDEO_MST (VIDEO_ID,TITLE,CHANNEL_ID,PUBLISHED_AT,DESCRIPTION,STATUS,TWEET) VALUES(?,?,?,CAST(? AS timestamp),?,'public','yet')";
 	    String getLastUploadDateCommand = "select max(PUBLISHED_AT) from YOUTUBE_VIDEO_MST where CHANNEL_ID=?";
 	    String updateActivityLevelCommand = "UPDATE YOUTUBE_CHANNEL_MST SET ACTIVITY_LEVEL = CAST(? AS int4) WHERE CHANNEL_ID = ?";
+	    String existCheckCommand = "SELECT COUNT(*) FROM YOUTUBE_VIDEO_MST WHERE VIDEO_ID=?";
 	    PreparedStatement getChannelStatement = sqlConnection.prepareStatement(getChannelCommand);
 	    PreparedStatement updateChannelStatement = sqlConnection.prepareStatement(updateChannelCommand);
 	    PreparedStatement insertVideoStatement = sqlConnection.prepareStatement(insertVideoCommand);
 	    PreparedStatement getLastUploadDateStatement = sqlConnection.prepareStatement(getLastUploadDateCommand);
 	    PreparedStatement updateActivityLevelStatement = sqlConnection.prepareStatement(updateActivityLevelCommand);
+	    PreparedStatement existCheckStatement = sqlConnection.prepareStatement(existCheckCommand);
 	    getChannelStatement.setString(1,arg[0]);
 	    ResultSet rset = null;
 	    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
@@ -60,38 +62,53 @@ public class VideoUploader{
 		    youtubeChannel.activityLevel = rset.getInt(3);
 		    youtubeChannel.asmrOnly = rset.getBoolean(4);
 		    youtubeChannel.description = rset.getString(5);
+		    youtubeChannel.country = rset.getString(7);
 
 		    //新着動画を取得
 		    ArrayList<YouTubeVideo> videoList = youtubeChannel.getVideoListAfter(rset.getTimestamp(6));
 
-		    //最終更新時を更新（本来はYouTubeChannelクラスがメソッドとして持つべき）
-		    updateChannelStatement.setString(1,youtubeChannel.channelId);
-		    updateChannelStatement.executeUpdate();
+		    if(videoList != null){
+			//Acitivity Levelを更新（本来はYouTubeChannelクラスがメソッドとして持つべき）
+			getLastUploadDateStatement.setString(1,youtubeChannel.channelId);
+			ResultSet rset2 = getLastUploadDateStatement.executeQuery();
+			rset2.next();
+			updateActivityLevelStatement.setString(2,youtubeChannel.channelId);
 
-		    //Acitivity Levelを更新（本来はYouTubeChannelクラスがメソッドとして持つべき）
-		    getLastUploadDateStatement.setString(1,youtubeChannel.channelId);
-		    ResultSet rset2 = getLastUploadDateStatement.executeQuery();
-		    rset2.next();
-		    updateActivityLevelStatement.setString(2,youtubeChannel.channelId);
+			if(videoList.size() != 0){
+			    System.out.println("新着動画あり");
+			    updateActivityLevelStatement.setString(1,String.valueOf(calcActLv(youtubeChannel.activityLevel, rset2.getTimestamp(1),true)));
+			    for(YouTubeVideo video : videoList){
+				//System.out.println("videoId="+video.videoId + ", channelId=" + video.channelId);
+				insertVideoStatement.setString(1,video.videoId);
+				insertVideoStatement.setString(2,video.title);
+				insertVideoStatement.setString(3,video.channelId);
+				insertVideoStatement.setString(4,sdf.format(video.publishedAt));
+				insertVideoStatement.setString(5,video.description);
+				existCheckStatement.setString(1,video.videoId);
 
-		    if(videoList.size() != 0){
-			System.out.println("新着動画あり");
-			updateActivityLevelStatement.setString(1,String.valueOf(calcActLv(youtubeChannel.activityLevel, rset2.getTimestamp(1),true)));
-			for(YouTubeVideo video : videoList){
-			    //System.out.println("videoId="+video.videoId + ", channelId=" + video.channelId);
-			    insertVideoStatement.setString(1,video.videoId);
-			    insertVideoStatement.setString(2,video.title);
-			    insertVideoStatement.setString(3,video.channelId);
-			    insertVideoStatement.setString(4,sdf.format(video.publishedAt));
-			    insertVideoStatement.setString(5,video.description);
-			    insertVideoStatement.executeUpdate();
+				//Liveのアーカイブの場合はブロードキャストのvideo idと同じのため既に存在する場合はINSERTしない
+				ResultSet rset3 = existCheckStatement.executeQuery();
+				rset3.next();
+				if(rset3.getInt(1) == 0){
+				    insertVideoStatement.executeUpdate();
+				    System.out.println("動画をDBにインサート");
+				}
+				System.out.println("\n");
+
+				//最終更新時を更新（本来はYouTubeChannelクラスがメソッドとして持つべき）
+				updateChannelStatement.setString(1,sdf.format(video.publishedAt));
+				updateChannelStatement.setString(2,youtubeChannel.channelId);
+				updateChannelStatement.executeUpdate();
+			    }
+			}else{
+			    //System.out.println(calcActLv(youtubeChannel.activityLevel, rset2.getTimestamp(1),false));
+			    System.out.println("新着動画なし\n");
+			    updateActivityLevelStatement.setString(1,String.valueOf(calcActLv(youtubeChannel.activityLevel, rset2.getTimestamp(1),false)));
 			}
+			updateActivityLevelStatement.executeUpdate();
 		    }else{
-			//System.out.println(calcActLv(youtubeChannel.activityLevel, rset2.getTimestamp(1),false));
-			System.out.println("新着動画なし");
-			updateActivityLevelStatement.setString(1,String.valueOf(calcActLv(youtubeChannel.activityLevel, rset2.getTimestamp(1),false)));
+			System.out.println("新着動画取得に失敗\n");
 		    }
-		    updateActivityLevelStatement.executeUpdate();
 		}
 		sqlConnection.commit();
 	    }catch(Exception e){
